@@ -171,9 +171,13 @@ This project is a hackathon MVP. Please review licensing requirements before usi
 
 ## 👥 Contributors
 
-Hackathon team members
+- Irina Danailova
+- Sechil Idriz
+- Ivelina Petkova
+- Todor Zaprev
+- Tsvetelina Gadzhelova
 
-## 🤝 Contributing
+## �� Contributing
 
 This is a hackathon project. If you'd like to improve it, please:
 
