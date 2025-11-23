@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - AI Модератор за тормоз</title>
+    <link rel="stylesheet" th:href="@{/css/signal.css}">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+        }
+        .error-message {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.2);
+        }
+        .back-home-link {
+            color: #8b5cf6;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            border: 2px solid rgba(139, 92, 246, 0.5);
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        .back-home-link:hover {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+            border-color: #8b5cf6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/rdvg6s0wduwowlzdlrgo7/hands-black.png?rlkey=lnbl02k330tvjbgpzh4j4duhk&st=ra0hbrv5&dl=1" 
+                     alt="SAFESPACE Logo" class="logo-img">
+            </div>
+            <h1>Вход</h1>
+        </div>
+
+        <div class="content">
+            <div th:if="${param.error}" class="error-message">
+                Невалиден имейл или парола.
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Имейл:</label>
+                    <input type="email" id="username" name="username" class="form-control" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Парола:</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Вход</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <a th:href="@{/}" class="back-home-link">← Начало</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

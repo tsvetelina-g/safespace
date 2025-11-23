@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Модератор за тормоз - Система за ранно разпознаване</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/rdvg6s0wduwowlzdlrgo7/hands-black.png?rlkey=lnbl02k330tvjbgpzh4j4duhk&st=ra0hbrv5&dl=1" 
+                     alt="SAFESPACE Logo" class="logo-img">
+            </div>
+            <h1 class="brand-name">SAFESPACE</h1>
+            <p class="subtitle">AI Модератор за ранно разпознаване и превенция на тормоз</p>
+        </div>
+
+        <div class="content">
+            <div class="description">
+                <p>Нашата система, задвижвана от AI, помага за идентифициране и предотвратяване на тормоз в образователни среди. 
+                   Учениците могат безопасно да подават сигнали, а нашият AI да го анализира, за да предостави
+                   незабавна подкрепа и да го насочи към подходящия специалист.</p>
+            </div>
+
+            <div class="actions">
+                <a th:href="@{/login}" class="btn btn-primary">Вход</a>
+                <a th:href="@{/signal}" class="btn btn-secondary">Продължи като гост</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

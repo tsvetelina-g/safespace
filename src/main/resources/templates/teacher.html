@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учителска панел - AI Модератор за тормоз</title>
+    <link rel="stylesheet" th:href="@{/css/teacher.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a th:href="@{/}" class="back-home-btn">← Начало</a>
+            <div class="logo-container">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/rdvg6s0wduwowlzdlrgo7/hands-black.png?rlkey=lnbl02k330tvjbgpzh4j4duhk&st=ra0hbrv5&dl=1" 
+                     alt="SAFESPACE Logo" class="logo-img">
+            </div>
+            <h1>Учителски панел</h1>
+            <div class="teacher-info-box">
+                <div class="teacher-name-section">
+                    <span class="teacher-label">Учител:</span>
+                    <span class="teacher-name" th:text="${teacherName}">Име</span>
+                </div>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="logout-btn">Изход</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="info-section">
+                <h2>Сигнали, изискващи внимание</h2>
+                <p>Показани са последните 10 сигнала, които изискват вашето внимание, подредени по спешност и сериозност.</p>
+            </div>
+            
+            <div class="filter-buttons">
+                <a th:href="@{/teacher}"
+                   th:classappend="${activeFilter == 'all'} ? 'active' : ''"
+                   class="filter-btn">Всички сигнали</a>
+                <a th:href="@{/teacher(filter='unprocessed')}" 
+                   th:classappend="${activeFilter == 'unprocessed'} ? 'active' : ''"
+                   class="filter-btn">Необработени сигнали</a>
+                <a th:href="@{/teacher(filter='processed')}" 
+                   th:classappend="${activeFilter == 'processed'} ? 'active' : ''"
+                   class="filter-btn">Обработени случаи</a>
+            </div>
+
+            <div th:if="${signals != null and !signals.isEmpty()}" class="signals-container">
+                <div th:each="signal : ${signals}" class="signal-card" 
+                     th:classappend="${signal.authorityNotified} ? 'notified' : ''">
+                    
+                    <!-- Signal Header -->
+                    <div class="signal-header">
+                        <div class="signal-meta">
+                            <span class="signal-id">Сигнал #<span th:text="${signal.id.toString().substring(0,8)}">ID</span></span>
+                            <span class="signal-date" th:text="${#temporals.format(signal.createdOn, 'dd.MM.yyyy HH:mm')}">Дата</span>
+                        </div>
+                        <div th:if="${signal.authorityNotified}" class="notified-badge">
+                            ✓ Обработен от: <span th:text="${signal.notifiedAuthority}">Учител</span>
+                        </div>
+                    </div>
+
+                    <!-- Student Name -->
+                    <div class="anonymous-status">
+                        <strong>Име на ученика:</strong>
+                        <span th:if="${signal.anonymous}" class="badge anonymous">Анонимен</span>
+                        <span th:unless="${signal.anonymous}" class="badge identified" th:text="${signal.studentName != null ? signal.studentName : 'Неизвестно'}">Име</span>
+                    </div>
+
+                    <!-- Bully Source -->
+                    <div class="bully-source">
+                        <strong>Източник на тормоз:</strong>
+                        <span class="source-badge">
+                            <span th:if="${signal.source != null and signal.source.name() == 'student_to_student'}">ученик</span>
+                            <span th:if="${signal.source != null and signal.source.name() == 'teacher_to_student'}">учител</span>
+                            <span th:if="${signal.source != null and signal.source.name() == 'parent_to_student'}">родител</span>
+                            <span th:if="${signal.source == null or signal.source.name() == 'unknown'}">неидентифицирано</span>
+                        </span>
+                    </div>
+
+                    <!-- Body Text -->
+                    <div class="body-text">
+                        <strong>Описание:</strong>
+                        <p th:text="${signal.bodyText}">Текст на сигнала</p>
+                    </div>
+
+                    <!-- Scores Grid -->
+                    <div class="scores-grid">
+                        <div class="score-item">
+                            <span class="score-label">Спешност:</span>
+                            <span class="score-value urgency" th:classappend="'urgency-' + ${signal.urgency}" 
+                                  th:text="${signal.urgency}">1</span>/5
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Сериозност:</span>
+                            <span class="score-value severity" th:classappend="'severity-' + ${signal.severity}" 
+                                  th:text="${signal.severity}">1</span>/5
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Важност:</span>
+                            <span class="score-value importance" th:classappend="'importance-' + ${signal.importance}" 
+                                  th:text="${signal.importance}">1</span>/5
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Достоверност:</span>
+                            <span class="score-value credibility" th:classappend="'credibility-' + ${signal.credibility}" 
+                                  th:text="${signal.credibility}">1</span>/5
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Обща оценка:</span>
+                            <span class="score-value seriousness" 
+                                  th:attr="data-score=${signal.seriousnessScore != null ? signal.seriousnessScore : 1}"
+                                  th:text="${signal.seriousnessScore}">0</span>/100
+                        </div>
+                    </div>
+
+                    <!-- Type of Bullying -->
+                    <div class="bullying-type">
+                        <strong>Тип тормоз:</strong>
+                        <span class="type-badge">
+                            <span th:if="${signal.type != null and signal.type.name() == 'physical_aggression'}">физическа агресия</span>
+                            <span th:if="${signal.type != null and signal.type.name() == 'verbal_bullying'}">вербален тормоз</span>
+                            <span th:if="${signal.type != null and signal.type.name() == 'cyberbullying'}">кибер тормоз</span>
+                            <span th:if="${signal.type != null and signal.type.name() == 'social_exclusion'}">социално изключване</span>
+                            <span th:if="${signal.type != null and signal.type.name() == 'harassment'}">тормоз / преследване</span>
+                            <span th:if="${signal.type != null and signal.type.name() == 'discriminatory_behavior'}">дискриминационно поведение</span>
+                            <span th:if="${signal.type != null and signal.type.name() == 'power_abuse'}">злоупотреба с власт</span>
+                            <span th:if="${signal.type == null or signal.type.name() == 'other'}">друго</span>
+                        </span>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="action-section" th:unless="${signal.authorityNotified}">
+                        <form th:action="@{/teacher/mark-notified}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="signalId" th:value="${signal.id}"/>
+                            <button type="submit" class="mark-notified-btn">✓ Маркирай като обработен</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${signals == null or signals.isEmpty()}" class="no-signals">
+                <p>Няма сигнали, изискващи вашето внимание в момента.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Calculate dynamic color for seriousness score (green at 1, red at 100)
+        (function() {
+            function updateSeriousnessColors() {
+                document.querySelectorAll('.score-value.seriousness').forEach(function(element) {
+                    var scoreAttr = element.getAttribute('data-score');
+                    if (!scoreAttr) return;
+                    
+                    var score = parseInt(scoreAttr);
+                    if (isNaN(score)) score = 1;
+                    
+                    // Clamp score between 1 and 100
+                    score = Math.max(1, Math.min(100, score));
+                    
+                    // Calculate ratio (0 at score 1, 1 at score 100)
+                    var ratio = (score - 1) / 99;
+                    
+                    // Interpolate RGB values from green to red
+                    // Green: rgb(76, 175, 80) at score 1
+                    // Red: rgb(244, 67, 54) at score 100
+                    var r1 = Math.round(76 + (168 * ratio));
+                    var g1 = Math.round(175 - (108 * ratio));
+                    var b1 = Math.round(80 - (26 * ratio));
+                    
+                    var r2 = Math.round(102 + (142 * ratio));
+                    var g2 = Math.round(187 - (120 * ratio));
+                    var b2 = Math.round(106 - (52 * ratio));
+                    
+                    // Set gradient background with !important to override CSS
+                    element.setAttribute('style', 'background: linear-gradient(135deg, rgb(' + r1 + ',' + g1 + ',' + b1 + ') 0%, rgb(' + r2 + ',' + g2 + ',' + b2 + ') 100%) !important; color: white !important;');
+                });
+            }
+            
+            // Run when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updateSeriousnessColors);
+            } else {
+                updateSeriousnessColors();
+            }
+        })();
+    </script>
+</body>
+</html>
+

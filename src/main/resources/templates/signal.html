@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подаване на сигнал - AI Модератор за тормоз</title>
+    <link rel="stylesheet" th:href="@{/css/signal.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a th:href="@{/}" class="back-home-btn">← Начало</a>
+            <div class="logo-container">
+                <img src="https://dl.dropboxusercontent.com/scl/fi/rdvg6s0wduwowlzdlrgo7/hands-black.png?rlkey=lnbl02k330tvjbgpzh4j4duhk&st=ra0hbrv5&dl=1" 
+                     alt="SAFESPACE Logo" class="logo-img">
+            </div>
+            <h1>Подаване на сигнал за тормоз</h1>
+            <div class="header-actions">
+            </div>
+        </div>
+
+        <!-- Welcome message for logged in users -->
+        <div class="welcome-message" sec:authorize="isAuthenticated()" th:if="${userFullName}">
+            <div class="welcome-content">
+                <span class="welcome-icon">👋</span>
+                <div class="welcome-text">
+                    <strong>Добре дошли, <span th:text="${userFullName}">Потребител</span>!</strong>
+                    <p>Можете да подадете сигнал по-долу. Вашата информация ще бъде свързана с този сигнал.</p>
+                </div>
+                <div class="welcome-logout">
+                    <form th:action="@{/logout}" method="post" style="display: inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="logout-btn">Изход</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <form th:action="@{/signal}" method="post" th:object="${signal}">
+                <div class="form-group">
+                    <label for="whoIsBullying">Кой ви тормози?</label>
+                    <select id="whoIsBullying" name="whoIsBullying" class="form-control">
+                        <option value="Student">Ученик</option>
+                        <option value="Teacher">Учител</option>
+                        <option value="Parent">Родител</option>
+                        <option value="Other">Друго</option>
+                    </select>
+                </div>
+
+                <!-- Show message if logged in -->
+                <div class="form-group auth-info" th:if="${isAuthenticated}">
+                    <div class="info-box">
+                        <strong>✓ Влезли сте като: <span th:text="${userFullName}">Потребител</span></strong>
+                        <p>По подразбиране вашият сигнал ще бъде свързан с вашия акаунт. Можете да изберете да подадете сигнала анонимно по-долу.</p>
+                    </div>
+                </div>
+
+                <!-- Show anonymous checkbox ONLY if logged in (guests are anonymous by default) -->
+                <div class="form-group" th:if="${isAuthenticated}">
+                    <label>
+                        <input type="checkbox" name="anonymous" th:field="*{anonymous}" id="anonymousCheckbox">
+                        Подаване анонимно (скриване на самоличността ми)
+                    </label>
+                </div>
+
+                <!-- Show name/phone fields only if NOT logged in and NOT anonymous -->
+                <div class="form-group" id="nameGroup" th:if="${!isAuthenticated}" style="display: none;">
+                    <label for="studentName">Вашето име (незадължително, ако не е анонимно)</label>
+                    <input type="text" id="studentName" name="studentName" class="form-control" 
+                           placeholder="Въведете вашето име">
+                </div>
+
+                <div class="form-group" id="phoneGroup" th:if="${!isAuthenticated}" style="display: none;">
+                    <label for="studentPhoneNumber">Вашият телефонен номер (незадължително, ако не е анонимно)</label>
+                    <input type="tel" id="studentPhoneNumber" name="studentPhoneNumber" class="form-control" 
+                           placeholder="Въведете вашия телефонен номер">
+                </div>
+
+                <div class="form-group">
+                    <label for="bodyText">Опишете инцидента:</label>
+                    <textarea id="bodyText" name="bodyText" th:field="*{bodyText}" 
+                              class="form-control" rows="6" 
+                              placeholder="Моля, опишете какво се е случило подробно, като за по-добра точност може да включите име, фамилия, клас, група, учител и други подробности..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Изпрати сигнал</button>
+            </form>
+
+
+            <div th:if="${showResult}" class="ai-response">
+                <h2>Резултат от AI анализ</h2>
+<!--                <div class="result-card">-->
+                    <!-- Student Response (Main Message) -->
+                    <div class="result-item student-message">
+                        <h3>Отговор към ученика:</h3>
+                        <p th:text="${signal.studentResponse != null ? signal.studentResponse : signal.aiAdvice}">Response will appear here</p>
+                    </div>
+
+                    <!-- Classification Details - Only visible to Teachers, Admins, and other professionals -->
+                    <div class="classification-section" sec:authorize="hasAnyRole('Teacher', 'Admin', 'Psychologist', 'MedicalStaff')">
+                        <h3>Класификация (за специалисти):</h3>
+                        <div class="classification-grid">
+                            <div class="result-item">
+                                <strong>Източник:</strong> 
+                                <span th:text="${signal.source != null ? signal.source : 'unknown'}">unknown</span>
+                            </div>
+                            <div class="result-item">
+                                <strong>Тип проблем:</strong> 
+                                <span th:text="${signal.type != null ? signal.type : 'other'}">other</span>
+                            </div>
+                            <div class="result-item">
+                                <strong>Спешност:</strong> 
+                                <span class="score" th:text="${signal.urgency != null ? signal.urgency : 1}">1</span>/5
+                            </div>
+                            <div class="result-item">
+                                <strong>Сериозност:</strong> 
+                                <span class="score" th:text="${signal.severity != null ? signal.severity : 1}">1</span>/5
+                            </div>
+                            <div class="result-item">
+                                <strong>Важност:</strong> 
+                                <span class="score" th:text="${signal.importance != null ? signal.importance : 1}">1</span>/5
+                            </div>
+                            <div class="result-item">
+                                <strong>Достоверност:</strong> 
+                                <span class="score" th:text="${signal.credibility != null ? signal.credibility : 1}">1</span>/5
+                            </div>
+                            <div class="result-item full-width">
+                                <strong>Препоръчано действие:</strong> 
+                                <span class="action-badge" th:text="${signal.recommendedAction != null ? signal.recommendedAction : 'monitor'}">monitor</span>
+                            </div>
+                        </div>
+                    </div>
+<!--                </div>-->
+            </div>
+
+            <!-- Back to Home button after results -->
+            <div class="back-home-section" style="text-align: center; margin-top: 30px;" th:if="${showResult}">
+                <a th:href="@{/}" class="back-home-btn">← Начало</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Anonymous checkbox only exists for logged-in users
+        // When checked, it means they want to submit anonymously even though logged in
+        var anonymousCheckbox = document.getElementById('anonymousCheckbox');
+        if (anonymousCheckbox) {
+            // For logged-in users, the checkbox just toggles anonymous submission
+            // No need to show/hide name/phone fields since they're not displayed for logged-in users
+            anonymousCheckbox.addEventListener('change', function() {
+                // Optional: You can add visual feedback here if needed
+                console.log('Anonymous submission:', this.checked);
+            });
+        }
+    </script>
+</body>
+</html>
+
